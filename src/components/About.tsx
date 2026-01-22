@@ -39,7 +39,7 @@ export default function About() {
         <Card className="about-item bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl md:text-2xl text-center text-muted-foreground">
-               A bit about <span className="text-primary">{PROFILE.name.split(" ")[0]}</span>
+               A bit about <span className="text-primary">Myself</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-lg leading-relaxed text-foreground/90">

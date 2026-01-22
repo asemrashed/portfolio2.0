@@ -20,21 +20,14 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
       tl.to(".welcome-text", {
         opacity: 1,
         y: 0,
-        duration: 1,
+        duration: 0.1,
         ease: "power2.out",
-      })
-      .to(".welcome-text", {
-        scale: 1.1,
-        duration: 0.5,
-        ease: "power1.inOut",
-        yoyo: true,
-        repeat: 1
       })
       .to(".preloader", {
         y: "-100%",
-        duration: 1,
+        duration: 0.1,
         ease: "power4.inOut",
-        delay: 0.5,
+        delay: 0.1,
       });
     }, comp);
 

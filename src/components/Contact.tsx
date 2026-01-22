@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Phone, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Mail, Phone, Loader2, CheckCircle, XCircle, Github, Linkedin, Facebook } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -65,6 +65,11 @@ export default function Contact() {
       await emailjs.sendForm(serviceId, templateId, formRef.current, publicKey);
       setStatus("success");
       formRef.current.reset();
+      
+      // Reset status after a delay so user can send again or sees the form is clear
+      setTimeout(() => {
+          setStatus("idle");
+      }, 3000);
     } catch (error) {
       console.error("EmailJS Error:", error);
       setStatus("error");
@@ -101,9 +106,20 @@ export default function Contact() {
                 </CardContent>
              </Card>
              <div className="p-4 rounded-lg bg-card border shadow-sm">
-                <p className="text-muted-foreground italic">
+                <p className="text-muted-foreground italic mb-4">
                     "I am currently open to new opportunities and collaborations. Let's build something amazing together!"
                 </p>
+                <div className="flex gap-4 justify-center md:justify-start">
+                    <Button variant="outline" size="icon" className="rounded-full hover:text-blue-600 hover:bg-blue-50/10" asChild>
+                        <a href={PROFILE.social.linkedin} target="_blank" rel="noopener noreferrer"><Linkedin className="h-5 w-5"/></a>
+                    </Button>
+                    <Button variant="outline" size="icon" className="rounded-full hover:text-primary hover:bg-gray-100/10" asChild>
+                        <a href={PROFILE.social.github} target="_blank" rel="noopener noreferrer"><Github className="h-5 w-5"/></a>
+                    </Button>
+                    <Button variant="outline" size="icon" className="rounded-full hover:text-blue-500 hover:bg-blue-50/10" asChild>
+                        <a href={PROFILE.social.facebook} target="_blank" rel="noopener noreferrer"><Facebook className="h-5 w-5"/></a>
+                    </Button>
+                </div>
              </div>
           </div>
 

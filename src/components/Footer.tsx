@@ -37,7 +37,7 @@ export default function Footer() {
                         <Facebook className="h-5 w-5" />
                     </a>
                     
-                    <Button variant="outline" size="icon" onClick={scrollToTop} className="ml-4 rounded-full bg-background/10 border-white/20 hover:bg-background/20 text-white">
+                    <Button variant="secondary" size="icon" onClick={scrollToTop} className="ml-4 rounded-full" aria-label="Back to Top">
                         <ArrowUp className="h-5 w-5" />
                     </Button>
                 </div>

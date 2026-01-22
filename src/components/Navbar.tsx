@@ -16,12 +16,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import ResumeDialog from "./ResumeDialog";
 
 const navLinks = [
   { name: "Home", href: "#home" },
-  { name: "Projects", href: "#projects" },
   { name: "About", href: "#about" },
   { name: "Skills", href: "#skills" },
+  { name: "Projects", href: "#projects" },
   { name: "Contact", href: "#contact" },
 ];
 
@@ -29,9 +30,25 @@ export default function Navbar() {
   const navRef = useRef<HTMLElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const [activeSection, setActiveSection] = useState("home");
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
+
+      // Active section tracking
+      const sections = navLinks.map(link => link.href.substring(1));
+      
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            setActiveSection(section);
+            break; 
+          }
+        }
+      }
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -68,29 +85,47 @@ export default function Navbar() {
         {/* Logo */}
         <Link
           href="#home"
-          className="text-2xl font-bold font-saira tracking-wider text-primary"
+          className="flex items-center gap-2 group"
           onClick={(e) => handleScrollTo(e, "#home")}
         >
-          {`<${PROFILE.name.split(" ")[0]} />`}
+          <div className="relative w-10 h-10 overflow-hidden rounded-full border-2 border-primary/20 group-hover:border-primary transition-colors">
+             {/* Creating a fallback since we don't know if LOGO.png is transparent or suitable for circle, but assuming standard logo */}
+             <img src="/LOGO.png" alt="Logo" className="object-cover w-full h-full" />
+          </div>
+          <span className="text-xl font-bold font-saira tracking-wider text-primary">
+            ASEM RASHED
+          </span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-foreground hover:text-primary transition-colors font-medium relative group"
-              onClick={(e) => handleScrollTo(e, link.href)}
-            >
-              {link.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+        <div className="hidden md:flex items-center gap-6">
+          {navLinks.filter(link => link.name !== "Contact").map((link) => {
+            const isActive = activeSection === link.href.substring(1);
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={cn(
+                  "transition-colors font-medium relative group",
+                  isActive ? "text-primary" : "text-foreground hover:text-primary"
+                )}
+                onClick={(e) => handleScrollTo(e, link.href)}
+              >
+                {link.name}
+                <span className={cn(
+                  "absolute -bottom-1 left-0 h-0.5 bg-primary transition-all",
+                  isActive ? "w-full" : "w-0 group-hover:w-full"
+                )} />
+              </Link>
+            );
+          })}
+          
+          <ResumeDialog variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" />
+
+          <Button variant="default" asChild>
+            <Link href="#contact" onClick={(e) => handleScrollTo(e, "#contact")}>
+                Contact Me
             </Link>
-          ))}
-          <Button variant="default" size="sm" asChild>
-            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-              Resume
-            </a>
           </Button>
         </div>
 
@@ -105,12 +140,13 @@ export default function Navbar() {
             </SheetTrigger>
             <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle className="text-left font-saira font-bold text-xl">
-                  Menu
+                <SheetTitle className="text-left font-saira font-bold text-xl flex items-center gap-2">
+                    <img src="/LOGO.png" alt="Logo" className="w-8 h-8 rounded-full" />
+                    Menu
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-6 mt-8">
-                {navLinks.map((link) => (
+                {navLinks.filter(link => link.name !== "Contact").map((link) => (
                   <SheetClose asChild key={link.name}>
                     <Link
                       href={link.href}
@@ -121,13 +157,18 @@ export default function Navbar() {
                     </Link>
                   </SheetClose>
                 ))}
-                <SheetClose asChild>
-                  <Button className="w-full" asChild>
-                    <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-                      Resume
-                    </a>
-                  </Button>
-                </SheetClose>
+                 
+                <div className="flex flex-col gap-3 mt-4">
+                    <ResumeDialog variant="outline" className="w-full justify-start" />
+                    
+                    <SheetClose asChild>
+                        <Button className="w-full" asChild>
+                            <Link href="#contact" onClick={(e) => handleScrollTo(e, "#contact")}>
+                                Contact Me
+                            </Link>
+                        </Button>
+                    </SheetClose>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
