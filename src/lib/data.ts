@@ -13,8 +13,8 @@ export const PROFILE = {
     linkedin: "https://www.linkedin.com/in/asem-rashed/",
     github: "https://github.com/asemrashed",
     facebook: "https://web.facebook.com/MohammadAsem.Rashed",
-    email: "asemrashed002@gmail.com", // Placeholder, need to verify
-    phone: "+8801629998611", // Placeholder or extract if found
+    email: "asemrashed002@gmail.com", 
+    phone: "+8801629998611", 
   }
 };
 
