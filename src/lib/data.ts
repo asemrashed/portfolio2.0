@@ -105,6 +105,28 @@ export const PROJECTS: Project[] = [
     featured: true,
   },
   {
+  name: "CarWorld",
+  category: "AI Coding",
+  images: {
+    pc: "/sites/car-world.png",
+    mobile: "/sites/car-worldM.png"
+  },
+  description: "CarWorld is a modern car listing and browsing web application built with Next.js. It allows users to explore cars with detailed information, clean UI, and a fully responsive experience optimized for performance.",
+  features: [
+    "Modern and responsive UI",
+    "Car listing and details view",
+    "Optimized performance with Next.js",
+    "Reusable component-based architecture",
+    "Deployed on Vercel"
+  ],
+  tags: ["Next.js", "React", "Tailwind CSS", "JavaScript", "Vercel"],
+  links: {
+    demo: "https://car-world-eta.vercel.app/",
+    github: "https://github.com/asemrashed/CarWorld"
+  },
+  featured: false
+},
+  {
     name: "E-TuitionsBD",
     category: "Full Stack",
     images: {
