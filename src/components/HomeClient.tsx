@@ -49,6 +49,7 @@ export default function HomeClient({
             key="projects"
             projects={projects}
             homepageProjects={homepageProjects}
+            categories={content.projectCategories}
             preview
           />
         );

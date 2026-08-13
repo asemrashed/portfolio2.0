@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WhatIOffer from "@/components/WhatIOffer";
+import AboutSocialLinks from "@/components/AboutSocialLinks";
 import type { AboutContent } from "@/lib/types";
 import { DEFAULT_ABOUT } from "@/lib/data";
 
@@ -50,15 +51,18 @@ export default function About({
             About Me
           </h2>
 
-          <div className="grid md:grid-cols-[240px_1fr] gap-8 items-start mb-16">
-            <div className="about-item relative mx-auto w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden border border-primary/20">
-              <Image
-                src={content.aboutImage}
-                alt="About"
-                fill
-                className="object-cover"
-                unoptimized={content.aboutImage.startsWith("http")}
-              />
+          <div className="grid md:grid-cols-[260px_1fr] gap-8 items-start mb-16">
+            <div className="about-item flex flex-col items-center md:items-stretch gap-4 w-full max-w-[260px] mx-auto md:mx-0">
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden border border-primary/20 shrink-0">
+                <Image
+                  src={content.aboutImage}
+                  alt="About"
+                  fill
+                  className="object-cover"
+                  unoptimized={content.aboutImage.startsWith("http")}
+                />
+              </div>
+              <AboutSocialLinks links={content.socialLinks || []} />
             </div>
 
             <Card className="about-item bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg">
@@ -68,9 +72,10 @@ export default function About({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-lg leading-relaxed text-foreground/90">
-                {content.paragraphs.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+                <div
+                  className="about-richtext"
+                  dangerouslySetInnerHTML={{ __html: content.body }}
+                />
               </CardContent>
             </Card>
           </div>

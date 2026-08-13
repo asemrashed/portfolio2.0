@@ -19,8 +19,15 @@ const SiteContentSchema = new Schema(
       hireCtaHref: String,
     },
     about: {
-      paragraphs: [String],
+      body: String,
+      paragraphs: [String], // legacy; migrated to body in getSiteContent
       aboutImage: String,
+      socialLinks: [
+        {
+          platform: String,
+          url: String,
+        },
+      ],
       education: [
         {
           title: String,
@@ -80,6 +87,7 @@ const SiteContentSchema = new Schema(
         },
       ],
     },
+    projectCategories: [String],
   },
   { timestamps: true, strict: false }
 );
@@ -97,7 +105,6 @@ const ProjectSchema = new Schema(
     description: { type: String, default: "" },
     category: {
       type: String,
-      enum: ["Frontend", "Full Stack", "AI Coding"],
       default: "Full Stack",
     },
     tags: [String],

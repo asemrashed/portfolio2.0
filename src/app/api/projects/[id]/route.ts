@@ -3,20 +3,22 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { connectDB, hasMongoUri } from "@/lib/db";
 import { ProjectModel } from "@/lib/models";
-import type { ProjectCategory } from "@/lib/types";
+import { getSiteContent } from "@/lib/content";
 
-const CATEGORIES: ProjectCategory[] = ["Frontend", "Full Stack", "AI Coding"];
-
-function normalizePayload(
+async function normalizePayload(
   body: Record<string, unknown>,
   status: "draft" | "published"
 ) {
   const images = (body.images ?? {}) as { pc?: string; mobile?: string };
   const links = (body.links ?? {}) as { demo?: string; github?: string };
   const name = String(body.name ?? "").trim();
-  const category = CATEGORIES.includes(body.category as ProjectCategory)
-    ? (body.category as ProjectCategory)
-    : "Full Stack";
+  const content = await getSiteContent();
+  const allowed = content.projectCategories;
+  const rawCategory = String(body.category ?? "").trim();
+  const category =
+    allowed.includes(rawCategory) || rawCategory
+      ? rawCategory || allowed[0] || "Full Stack"
+      : allowed[0] || "Full Stack";
 
   if (status === "published") {
     if (!name) throw new Error("Name is required to publish");
@@ -64,7 +66,7 @@ export async function PUT(
     const { id } = await context.params;
     const body = (await req.json()) as Record<string, unknown>;
     const status = body.status === "draft" ? "draft" : "published";
-    const payload = normalizePayload(body, status);
+    const payload = await normalizePayload(body, status);
 
     const project = await ProjectModel.findByIdAndUpdate(id, payload, {
       returnDocument: "after",

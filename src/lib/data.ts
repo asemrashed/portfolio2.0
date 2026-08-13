@@ -9,7 +9,7 @@ import type {
   SiteSettings,
   SkillCategory,
 } from "./types";
-import { DEFAULT_HOME_SECTIONS } from "./types";
+import { DEFAULT_HOME_SECTIONS, DEFAULT_PROJECT_CATEGORIES } from "./types";
 
 export type { Project } from "./types";
 export { DEFAULT_HOME_SECTIONS } from "./types";
@@ -55,8 +55,15 @@ export const DEFAULT_HERO: HeroContent = {
 };
 
 export const DEFAULT_ABOUT: AboutContent = {
-  paragraphs: PROFILE.about,
+  body: PROFILE.about.map((p) => `<p>${p}</p>`).join(""),
   aboutImage: "/asem.png",
+  socialLinks: [
+    { platform: "upwork", url: "https://www.upwork.com/freelancers/~01af870ab1a4e7d71a" },
+    { platform: "freelancer", url: "https://www.freelancer.com/u/AsemRashed" },
+    { platform: "linkedin", url: "https://www.linkedin.com/in/asem-rashed/" },
+    { platform: "github", url: "https://github.com/asemrashed" },
+    { platform: "facebook", url: "https://web.facebook.com/MohammadAsem.Rashed" },
+  ],
   education: [
     {
       title: "BSc in Automobile",
@@ -482,4 +489,5 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   contact: DEFAULT_CONTACT,
   cta: DEFAULT_CTA,
   homeLayout: DEFAULT_HOME_LAYOUT,
+  projectCategories: [...DEFAULT_PROJECT_CATEGORIES],
 };

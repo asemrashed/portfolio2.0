@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ImageField,
   SaveBar,
-  TextListEditor,
   useContentSection,
 } from "@/components/admin/AdminFormUtils";
+import RichTextEditor from "@/components/admin/RichTextEditor";
+import SocialLinksEditor from "@/components/admin/SocialLinksEditor";
 import type { AboutContent } from "@/lib/types";
 import { DEFAULT_ABOUT } from "@/lib/data";
 
@@ -28,11 +29,16 @@ export default function AboutAdminPage() {
         onChange={(aboutImage) => setData({ ...data, aboutImage })}
       />
 
-      <TextListEditor
-        label="About paragraphs"
-        values={data.paragraphs}
-        onChange={(paragraphs) => setData({ ...data, paragraphs })}
-        placeholder="Paragraph"
+      <RichTextEditor
+        label="About content"
+        value={data.body || ""}
+        onChange={(body) => setData({ ...data, body })}
+        placeholder="Write your about section…"
+      />
+
+      <SocialLinksEditor
+        links={data.socialLinks || []}
+        onChange={(socialLinks) => setData({ ...data, socialLinks })}
       />
 
       <section className="space-y-3">

@@ -14,6 +14,7 @@ const ALLOWED_SECTIONS = [
   "contact",
   "cta",
   "homeLayout",
+  "projectCategories",
 ] as const;
 
 type Section = (typeof ALLOWED_SECTIONS)[number];
@@ -48,12 +49,29 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Invalid section payload" }, { status: 400 });
     }
 
+    let payload: unknown = data;
+    if (section === "projectCategories") {
+      if (!Array.isArray(data)) {
+        return NextResponse.json({ error: "Categories must be an array" }, { status: 400 });
+      }
+      const cleaned = (data as string[])
+        .map((c) => String(c ?? "").trim())
+        .filter(Boolean);
+      if (!cleaned.length) {
+        return NextResponse.json(
+          { error: "Keep at least one category" },
+          { status: 400 }
+        );
+      }
+      payload = [...new Set(cleaned)];
+    }
+
     await connectDB();
     await ensureSeeded();
 
     await SiteContentModel.findOneAndUpdate(
       { key: "main" },
-      { $set: { [section]: data } },
+      { $set: { [section]: payload } },
       { returnDocument: "after", upsert: true }
     );
 

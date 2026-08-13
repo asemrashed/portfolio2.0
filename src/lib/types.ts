@@ -1,4 +1,10 @@
-export type ProjectCategory = "Frontend" | "Full Stack" | "AI Coding";
+export type ProjectCategory = string;
+
+export const DEFAULT_PROJECT_CATEGORIES = [
+  "Frontend",
+  "Full Stack",
+  "AI Coding",
+] as const;
 
 export type HomeSectionKey =
   | "hero"
@@ -82,9 +88,16 @@ export interface HeroContent {
   hireCtaHref: string;
 }
 
+export interface AboutSocialLink {
+  platform: string;
+  url: string;
+}
+
 export interface AboutContent {
-  paragraphs: string[];
+  /** Rich HTML from the Tiptap editor */
+  body: string;
   aboutImage: string;
+  socialLinks: AboutSocialLink[];
   education: EducationItem[];
   courses: CourseItem[];
   offerings: Offering[];
@@ -119,6 +132,7 @@ export interface SiteContent {
   contact: ContactContent;
   cta: CtaContent;
   homeLayout: HomeLayoutContent;
+  projectCategories: string[];
 }
 
 export const HOME_SECTION_LABELS: Record<HomeSectionKey, string> = {

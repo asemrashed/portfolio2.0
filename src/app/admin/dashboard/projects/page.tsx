@@ -18,20 +18,14 @@ import {
 } from "@/components/admin/AdminFormUtils";
 import DragList from "@/components/admin/DragList";
 import type { Project, ProjectCategory } from "@/lib/types";
+import { DEFAULT_PROJECT_CATEGORIES } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const CATEGORIES: Array<ProjectCategory | "All"> = [
-  "All",
-  "Frontend",
-  "Full Stack",
-  "AI Coding",
-];
-
-const emptyProject: Project = {
+const emptyProject = (defaultCategory: string): Project => ({
   name: "",
   description: "",
-  category: "Full Stack",
+  category: defaultCategory,
   images: { pc: "", mobile: "" },
   tags: [],
   features: [],
@@ -41,25 +35,40 @@ const emptyProject: Project = {
   homeOrder: 0,
   order: 0,
   status: "draft",
-};
+});
 
 export default function ProjectsAdminPage() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [categories, setCategories] = useState<string[]>([
+    ...DEFAULT_PROJECT_CATEGORIES,
+  ]);
   const [editing, setEditing] = useState<Project | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<"draft" | "publish" | null>(null);
   const [homeSaving, setHomeSaving] = useState(false);
+  const [catSaving, setCatSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [homeMessage, setHomeMessage] = useState("");
+  const [catMessage, setCatMessage] = useState("");
   const [category, setCategory] = useState<ProjectCategory | "All">("All");
+  const [newCategory, setNewCategory] = useState("");
+  const [editingCatIndex, setEditingCatIndex] = useState<number | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/projects");
-      const data = await res.json();
-      setProjects(data.projects || []);
+      const [projectsRes, contentRes] = await Promise.all([
+        fetch("/api/projects"),
+        fetch("/api/content?section=projectCategories"),
+      ]);
+      const projectsData = await projectsRes.json();
+      const contentData = await contentRes.json();
+      setProjects(projectsData.projects || []);
+      if (Array.isArray(contentData.projectCategories) && contentData.projectCategories.length) {
+        setCategories(contentData.projectCategories);
+      }
     } finally {
       setLoading(false);
     }
@@ -68,6 +77,111 @@ export default function ProjectsAdminPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const persistCategories = async (
+    next: string[],
+    opts?: { rename?: { from: string; to: string } }
+  ) => {
+    setCatSaving(true);
+    setCatMessage("");
+    try {
+      const res = await fetch("/api/content", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section: "projectCategories", data: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCatMessage(data.error || "Failed to save categories");
+        return false;
+      }
+      setCategories(data.projectCategories || next);
+
+      if (opts?.rename && opts.rename.from !== opts.rename.to) {
+        const toUpdate = projects.filter((p) => p.category === opts.rename!.from && p._id);
+        await Promise.all(
+          toUpdate.map((p) =>
+            fetch(`/api/projects/${p._id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...p, category: opts.rename!.to }),
+            })
+          )
+        );
+        await load();
+      }
+
+      setCatMessage("Categories saved");
+      return true;
+    } catch {
+      setCatMessage("Failed to save categories");
+      return false;
+    } finally {
+      setCatSaving(false);
+    }
+  };
+
+  const addCategory = async () => {
+    const name = newCategory.trim();
+    if (!name) return;
+    if (categories.some((c) => c.toLowerCase() === name.toLowerCase())) {
+      setCatMessage("Category already exists");
+      return;
+    }
+    const ok = await persistCategories([...categories, name]);
+    if (ok) setNewCategory("");
+  };
+
+  const startEditCategory = (index: number) => {
+    setEditingCatIndex(index);
+    setEditingCatName(categories[index]);
+    setCatMessage("");
+  };
+
+  const saveEditCategory = async () => {
+    if (editingCatIndex === null) return;
+    const name = editingCatName.trim();
+    if (!name) {
+      setCatMessage("Name is required");
+      return;
+    }
+    if (
+      categories.some(
+        (c, i) => i !== editingCatIndex && c.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      setCatMessage("Category already exists");
+      return;
+    }
+    const from = categories[editingCatIndex];
+    const next = [...categories];
+    next[editingCatIndex] = name;
+    const ok = await persistCategories(next, { rename: { from, to: name } });
+    if (ok) {
+      setEditingCatIndex(null);
+      setEditingCatName("");
+      if (category === from) setCategory(name);
+    }
+  };
+
+  const deleteCategory = async (index: number) => {
+    const name = categories[index];
+    const inUse = projects.some((p) => p.category === name);
+    if (inUse) {
+      setCatMessage(
+        `Cannot delete "${name}" — projects still use it. Reassign those projects first.`
+      );
+      return;
+    }
+    if (categories.length <= 1) {
+      setCatMessage("Keep at least one category");
+      return;
+    }
+    if (!confirm(`Delete category "${name}"?`)) return;
+    const next = categories.filter((_, i) => i !== index);
+    const ok = await persistCategories(next);
+    if (ok && category === name) setCategory("All");
+  };
 
   const selectedInCategory = useMemo(() => {
     const selected = projects
@@ -90,8 +204,10 @@ export default function ProjectsAdminPage() {
     [projects, category]
   );
 
+  const filterTabs: Array<ProjectCategory | "All"> = ["All", ...categories];
+
   const openCreate = () => {
-    setEditing({ ...emptyProject });
+    setEditing({ ...emptyProject(categories[0] || "Full Stack") });
     setMessage("");
     setModalOpen(true);
   };
@@ -262,8 +378,114 @@ export default function ProjectsAdminPage() {
         <Button onClick={openCreate}>Add project</Button>
       </div>
 
+      <section className="space-y-3 rounded-xl border border-primary/20 p-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold">Categories</h2>
+            <p className="text-sm text-muted-foreground">
+              Add, rename, or delete project categories used on the site.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          <Input
+            className="max-w-xs"
+            placeholder="New category name"
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCategory();
+              }
+            }}
+          />
+          <Button type="button" onClick={addCategory} disabled={catSaving}>
+            Add category
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {categories.map((cat, index) => (
+            <div
+              key={`${cat}-${index}`}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 border rounded-lg p-3"
+            >
+              {editingCatIndex === index ? (
+                <>
+                  <Input
+                    value={editingCatName}
+                    onChange={(e) => setEditingCatName(e.target.value)}
+                    className="flex-1"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        saveEditCategory();
+                      }
+                    }}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={saveEditCategory}
+                      disabled={catSaving}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingCatIndex(null);
+                        setEditingCatName("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="flex-1 font-medium">{cat}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditCategory(index)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteCategory(index)}
+                      disabled={catSaving}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {(catSaving || catMessage) && (
+          <p className="text-sm text-muted-foreground flex items-center gap-2">
+            {catSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+            {catMessage || "Saving…"}
+          </p>
+        )}
+      </section>
+
       <div className="flex flex-wrap gap-2">
-        {CATEGORIES.map((cat) => (
+        {filterTabs.map((cat) => (
           <Button
             key={cat}
             type="button"
@@ -421,13 +643,18 @@ export default function ProjectsAdminPage() {
                   onChange={(e) =>
                     setEditing({
                       ...editing,
-                      category: e.target.value as ProjectCategory,
+                      category: e.target.value,
                     })
                   }
                 >
-                  <option value="Frontend">Frontend</option>
-                  <option value="Full Stack">Full Stack</option>
-                  <option value="AI Coding">AI Coding</option>
+                  {!categories.includes(editing.category) && editing.category && (
+                    <option value={editing.category}>{editing.category}</option>
+                  )}
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
                 </select>
               </div>
               <ImageField

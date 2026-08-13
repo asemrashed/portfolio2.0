@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Project, ProjectCategory } from "@/lib/types";
+import { DEFAULT_PROJECT_CATEGORIES } from "@/lib/types";
 import { PROJECTS } from "@/lib/data";
 import ProjectCard from "./ProjectCard";
 import { Button } from "./ui/button";
@@ -13,7 +14,6 @@ import { cn } from "@/lib/utils";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const CATEGORIES: ProjectCategory[] = ["Frontend", "Full Stack", "AI Coding"];
 const HOME_LIMIT = 3;
 
 interface ProjectsProps {
@@ -21,20 +21,32 @@ interface ProjectsProps {
   homepageProjects?: Project[];
   preview?: boolean;
   initialCategory?: ProjectCategory;
+  categories?: string[];
 }
 
 export default function Projects({
   projects = PROJECTS,
   homepageProjects,
   preview = false,
-  initialCategory = "Full Stack",
+  initialCategory,
+  categories = [...DEFAULT_PROJECT_CATEGORIES],
 }: ProjectsProps) {
   const containerRef = useRef<HTMLElement>(null);
-  const [activeCategory, setActiveCategory] = useState<ProjectCategory>(initialCategory);
+  const tabs = categories.length ? categories : [...DEFAULT_PROJECT_CATEGORIES];
+  const fallbackCategory = tabs.includes("Full Stack")
+    ? "Full Stack"
+    : tabs[0];
+  const resolvedInitial =
+    initialCategory && tabs.includes(initialCategory)
+      ? initialCategory
+      : fallbackCategory;
+
+  const [activeCategory, setActiveCategory] =
+    useState<ProjectCategory>(resolvedInitial);
 
   useEffect(() => {
-    setActiveCategory(initialCategory);
-  }, [initialCategory]);
+    setActiveCategory(resolvedInitial);
+  }, [resolvedInitial]);
 
   const homePool =
     homepageProjects && homepageProjects.length > 0
@@ -90,7 +102,7 @@ export default function Projects({
         </p>
 
         <div className="flex justify-center gap-4 mb-12 flex-wrap">
-          {CATEGORIES.map((category) => (
+          {tabs.map((category) => (
             <Button
               key={category}
               variant={activeCategory === category ? "default" : "outline"}
