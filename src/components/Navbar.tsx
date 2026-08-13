@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { Menu, X } from "lucide-react";
-import { PROFILE } from "@/lib/data";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,40 +16,27 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import ResumeDialog from "./ResumeDialog";
+import type { SiteSettings } from "@/lib/types";
+import { DEFAULT_SETTINGS } from "@/lib/data";
 
 const navLinks = [
-  { name: "Home", href: "#home" },
-  { name: "About", href: "#about" },
-  { name: "Skills", href: "#skills" },
-  { name: "Projects", href: "#projects" },
-  { name: "Contact", href: "#contact" },
+  { name: "Home", href: "/" },
+  { name: "About", href: "/about" },
+  { name: "Projects", href: "/projects" },
+  { name: "Contact", href: "/contact" },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  settings?: SiteSettings;
+}
+
+export default function Navbar({ settings = DEFAULT_SETTINGS }: NavbarProps) {
   const navRef = useRef<HTMLElement>(null);
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const [activeSection, setActiveSection] = useState("home");
-
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-
-      // Active section tracking
-      const sections = navLinks.map(link => link.href.substring(1));
-      
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 150 && rect.bottom >= 150) {
-            setActiveSection(section);
-            break; 
-          }
-        }
-      }
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -63,13 +50,8 @@ export default function Navbar() {
     });
   });
 
-  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <nav
@@ -82,54 +64,44 @@ export default function Navbar() {
       )}
     >
       <div className="container mx-auto flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="#home"
-          className="flex items-center gap-2 group"
-          onClick={(e) => handleScrollTo(e, "#home")}
-        >
+        <Link href="/" className="flex items-center gap-2 group">
           <div className="relative w-10 h-10 overflow-hidden rounded-full border-2 border-primary/20 group-hover:border-primary transition-colors">
-             {/* Creating a fallback since we don't know if LOGO.png is transparent or suitable for circle, but assuming standard logo */}
-             <img src="/LOGO.png" alt="Logo" className="object-cover w-full h-full" />
+            <img src={settings.logoUrl} alt="Logo" className="object-cover w-full h-full" />
           </div>
           <span className="text-xl font-bold font-saira tracking-wider text-primary">
-            ASEM RASHED
+            {settings.siteName}
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-6">
-          {navLinks.filter(link => link.name !== "Contact").map((link) => {
-            const isActive = activeSection === link.href.substring(1);
-            return (
+          {navLinks
+            .filter((link) => link.name !== "Contact")
+            .map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
                 className={cn(
                   "transition-colors font-medium relative group",
-                  isActive ? "text-primary" : "text-foreground hover:text-primary"
+                  isActive(link.href)
+                    ? "text-primary"
+                    : "text-foreground hover:text-primary"
                 )}
-                onClick={(e) => handleScrollTo(e, link.href)}
               >
                 {link.name}
-                <span className={cn(
-                  "absolute -bottom-1 left-0 h-0.5 bg-primary transition-all",
-                  isActive ? "w-full" : "w-0 group-hover:w-full"
-                )} />
+                <span
+                  className={cn(
+                    "absolute -bottom-1 left-0 h-0.5 bg-primary transition-all",
+                    isActive(link.href) ? "w-full" : "w-0 group-hover:w-full"
+                  )}
+                />
               </Link>
-            );
-          })}
-          
-          <ResumeDialog variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" />
+            ))}
 
           <Button variant="default" asChild>
-            <Link href="#contact" onClick={(e) => handleScrollTo(e, "#contact")}>
-                Contact Me
-            </Link>
+            <Link href="/contact">Contact Me</Link>
           </Button>
         </div>
 
-        {/* Mobile Nav */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
@@ -141,33 +113,34 @@ export default function Navbar() {
             <SheetContent side="right">
               <SheetHeader>
                 <SheetTitle className="text-left font-saira font-bold text-xl flex items-center gap-2">
-                    <img src="/LOGO.png" alt="Logo" className="w-8 h-8 rounded-full" />
-                    Menu
+                  <img
+                    src={settings.logoUrl}
+                    alt="Logo"
+                    className="w-8 h-8 rounded-full"
+                  />
+                  Menu
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-6 mt-8">
-                {navLinks.filter(link => link.name !== "Contact").map((link) => (
-                  <SheetClose asChild key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-lg font-medium hover:text-primary transition-colors"
-                      onClick={(e) => handleScrollTo(e, link.href)}
-                    >
-                      {link.name}
-                    </Link>
-                  </SheetClose>
-                ))}
-                 
-                <div className="flex flex-col gap-3 mt-4">
-                    <ResumeDialog variant="outline" className="w-full justify-start" />
-                    
-                    <SheetClose asChild>
-                        <Button className="w-full" asChild>
-                            <Link href="#contact" onClick={(e) => handleScrollTo(e, "#contact")}>
-                                Contact Me
-                            </Link>
-                        </Button>
+                {navLinks
+                  .filter((link) => link.name !== "Contact")
+                  .map((link) => (
+                    <SheetClose asChild key={link.name}>
+                      <Link
+                        href={link.href}
+                        className="text-lg font-medium hover:text-primary transition-colors"
+                      >
+                        {link.name}
+                      </Link>
                     </SheetClose>
+                  ))}
+
+                <div className="flex flex-col gap-3 mt-4">
+                  <SheetClose asChild>
+                    <Button className="w-full" asChild>
+                      <Link href="/contact">Contact Me</Link>
+                    </Button>
+                  </SheetClose>
                 </div>
               </div>
             </SheetContent>

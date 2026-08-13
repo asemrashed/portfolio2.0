@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Project } from "@/lib/data";
+import type { Project } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";

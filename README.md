@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` — Home (hero, what I offer, skills, 3 projects/category, CTA)
+- `/about` — About, offerings, education, courses
+- `/projects` — Full project list
+- `/contact` — Contact form
+- `/admin` — CMS login → `/admin/dashboard`
 
-## Learn More
+## CMS setup
 
-To learn more about Next.js, take a look at the following resources:
+Add these to `.env.local` (see `.env.example`):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `MONGODB_URI` — MongoDB Atlas connection string
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — dashboard login
+- `AUTH_SECRET` — random secret for session cookies
+- `CLOUDINARY_*` — optional image uploads (or paste URLs in admin)
+- `NEXT_PUBLIC_EMAILJS_*` — contact form
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Then seed default content:
 
-## Deploy on Vercel
+```bash
+npm run seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Or use **Seed database** inside `/admin/dashboard` after logging in.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Without MongoDB, the public site still runs using built-in fallback data from `src/lib/data.ts`.

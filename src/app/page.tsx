@@ -1,33 +1,19 @@
-"use client";
+import HomeClient from "@/components/HomeClient";
+import { getHomepageProjects, getProjects, getSiteContent } from "@/lib/content";
 
-import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import About from "@/components/About";
-import Skills from "@/components/Skills";
-import Projects from "@/components/Projects";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
-import Preloader from "@/components/Preloader";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
-
+export default async function HomePage() {
+  const [content, projects, homepageProjects] = await Promise.all([
+    getSiteContent(),
+    getProjects(),
+    getHomepageProjects(),
+  ]);
   return (
-    <main className="relative min-h-screen">
-      {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
-      
-      {!isLoading && (
-        <>
-          <Navbar />
-          <Hero />
-          <About />
-          <Skills />
-          <Projects />
-          <Contact />
-          <Footer />
-        </>
-      )}
-    </main>
+    <HomeClient
+      content={content}
+      projects={projects}
+      homepageProjects={homepageProjects}
+    />
   );
 }
